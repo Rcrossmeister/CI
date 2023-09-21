@@ -1,46 +1,52 @@
 import torch
-import torch.nn as nn
-import torch.optim as optim
-class Perceptron(nn.Module):
+
+
+class ManualPerceptron:
     def __init__(self, input_dim):
-        super(Perceptron, self).__init__()
-        self.fc = nn.Linear(input_dim, 1)
-        self.sig = nn.Sigmoid()
+        self.weights = torch.randn(input_dim, 1) * 0.01
+        self.bias = torch.randn(1) * 0.01
+
+    def sigmoid(self, x):
+        return 1 / (1 + torch.exp(-x))
 
     def forward(self, x):
-        return self.sig(self.fc(x))
+        linear_output = torch.mm(x, self.weights) + self.bias
+        return self.sigmoid(linear_output)
 
-def train_and_evaluate(data, lr, epochs, avg=False):
-    X = data[:, :-1]
-    y = data[:, -1].unsqueeze(1)
-    learning_rate = lr
-    epochs = epochs
+    def squared_loss(self, y_true, y_pred):
+        return torch.mean((y_true - y_pred) ** 2)
 
-    model = Perceptron(input_dim=3)
-    criterion = nn.BCELoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    def mse(self, y_true, y_pred):
+        # Manual computation of Mean Squared Error
+        return torch.mean((y_true - y_pred) ** 2)
 
-    losses = []
-    for epoch in range(epochs):
-        outputs = model(X)
-        loss = criterion(outputs, y)
-        losses.append(loss.item())
+    def train(self, X, y, learning_rate, epochs):
+        for epoch in range(epochs):
+            # Forward pass
+            predictions = self.forward(X)
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        if not avg:
-            print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
+            # Compute BCE loss
+            loss = self.squared_loss(y, predictions)
 
-    with torch.no_grad():
-        predictions = model(X)
-        print(predictions)
-        print(y)
-        mse = nn.MSELoss()(predictions, y)
-        if not avg:
-            print(f"Final MSE: {mse.item():.4f}")
+            # Compute MSE
+            mse_value = self.mse(y, predictions)
 
-    return sum(losses) / len(losses), mse.item()
+            # Compute gradients
+            dloss_dpred = -(y / predictions) + (1 - y) / (1 - predictions)
+            dpred_dlinear = predictions * (1 - predictions)
+            dloss_dlinear = dloss_dpred * dpred_dlinear
+            dloss_dweights = torch.mm(X.t(), dloss_dlinear)
+            dloss_dbias = torch.sum(dloss_dlinear)
+
+            # Update weights and bias using SGD
+            self.weights -= learning_rate * dloss_dweights
+            self.bias -= learning_rate * dloss_dbias
+
+            # Print the BCE loss and MSE for each epoch
+            print(f"Epoch [{epoch + 1}/{epochs}], BCE Loss: {loss.item():.4f}, MSE: {mse_value.item():.4f}")
+
+        # Return the final weights and bias
+        return self.weights, self.bias
 
 if __name__ == '__main__':
     data = torch.tensor([
@@ -51,5 +57,11 @@ if __name__ == '__main__':
         [15, 70, 44, 0],
         [12, 45, 35, 0]
     ], dtype=torch.float32)
-    train_and_evaluate(data, 0.01, 3)
+
+    X = data[:, :-1]
+    y = data[:, -1].unsqueeze(1)
+
+    model = ManualPerceptron(input_dim=3)
+    final_weights_sigmoid_mse, final_bias_sigmoid_mse = model.train(X, y, learning_rate=0.0001, epochs=3)
+
 
