@@ -43,7 +43,7 @@ class ManualPerceptron:
             self.bias -= learning_rate * dloss_dbias
 
             # Print the BCE loss and MSE for each epoch
-            print(f"Epoch [{epoch + 1}/{epochs}], BCE Loss: {loss.item():.4f}, MSE: {mse_value.item():.4f}")
+            print(f"Epoch [{epoch + 1}/{epochs}], Squared Loss: {loss.item():.4f}, MSE: {mse_value.item():.4f}")
 
         # Return the final weights and bias
         return self.weights, self.bias
