@@ -17,35 +17,27 @@ class ManualPerceptron:
         return torch.mean((y_true - y_pred) ** 2)
 
     def mse(self, y_true, y_pred):
-        # Manual computation of Mean Squared Error
         return torch.mean((y_true - y_pred) ** 2)
 
     def train(self, X, y, learning_rate, epochs):
         for epoch in range(epochs):
-            # Forward pass
             predictions = self.forward(X)
 
-            # Compute BCE loss
             loss = self.squared_loss(y, predictions)
 
-            # Compute MSE
             mse_value = self.mse(y, predictions)
 
-            # Compute gradients
             dloss_dpred = -(y / predictions) + (1 - y) / (1 - predictions)
             dpred_dlinear = predictions * (1 - predictions)
             dloss_dlinear = dloss_dpred * dpred_dlinear
             dloss_dweights = torch.mm(X.t(), dloss_dlinear)
             dloss_dbias = torch.sum(dloss_dlinear)
 
-            # Update weights and bias using SGD
             self.weights -= learning_rate * dloss_dweights
             self.bias -= learning_rate * dloss_dbias
 
-            # Print the BCE loss and MSE for each epoch
             print(f"Epoch [{epoch + 1}/{epochs}], Squared Loss: {loss.item():.4f}, MSE: {mse_value.item():.4f}")
 
-        # Return the final weights and bias
         return self.weights, self.bias
 
 if __name__ == '__main__':
