@@ -2,6 +2,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
+import pandas as pd
+
+url = 'https://www.gairuo.com/file/data/dataset/iris.data'
+iris_data = pd.read_csv(url)
 
 # Drop the unnecessary column and split data into features and target
 X = iris_data.drop(columns=['Unnamed: 0', 'species'])
