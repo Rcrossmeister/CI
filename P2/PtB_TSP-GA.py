@@ -63,3 +63,21 @@ plt.ylabel('Distance')
 plt.title('Convergence of the Genetic Algorithm')
 plt.grid(True)
 plt.savefig('/Users/rcross/Desktop/Work/Task/CI/P2/GA.png')
+
+x_coords = city_data.iloc[:, 0].values
+y_coords = city_data.iloc[:, 1].values
+
+plt.figure(figsize=(12, 8))
+plt.scatter(x_coords, y_coords, color='red', s=50, label='Cities')
+plt.scatter(x_coords[best_route[0]], y_coords[best_route[0]], color='green', s=100, label='Start City', zorder=5)
+plt.plot(x_coords[best_route], y_coords[best_route], color='red', linestyle='-', linewidth=1, marker='o')
+
+for i, city in enumerate(best_route):
+    plt.annotate(city, (x_coords[city], y_coords[city]), fontsize=9, ha='right')
+
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Best Route Found by the Genetic Algorithm')
+plt.grid(True)
+plt.legend()
+plt.show()
