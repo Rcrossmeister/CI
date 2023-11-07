@@ -1,68 +1,77 @@
 import random
 import numpy as np
 
-
 class Particle:
-    def __init__(self, board_size):
-        self.position = np.array([random.randint(0, board_size - 1) for _ in range(board_size)])
-        self.velocity = np.array([0 for _ in range(board_size)])
+    def __init__(self, n):
+        # Initialize position and velocity
+        self.position = np.array([random.uniform(0, n - 1) for _ in range(n)])
+        self.velocity = np.zeros(n)
         self.best_position = np.copy(self.position)
-        self.best_score = float('inf')
+        self.best_fitness = float('inf')
+        self.fitness = float('inf')
 
-    def update_velocity(self, global_best_position, w=0.5, c1=1, c2=1):
-        inertia = w * self.velocity
-        cognitive_component = c1 * random.random() * (self.best_position - self.position)
-        social_component = c2 * random.random() * (global_best_position - self.position)
-        self.velocity = inertia + cognitive_component + social_component
+    def update_velocity(self, global_best_position, w=0.72, c1=1.49, c2=1.49):
+        # Update the particle's velocity
+        r1 = random.random()
+        r2 = random.random()
+        cognitive_velocity = c1 * r1 * (self.best_position - self.position)
+        social_velocity = c2 * r2 * (global_best_position - self.position)
+        self.velocity = w * self.velocity + cognitive_velocity + social_velocity
 
-    def update_position(self, board_size):
-        new_positions = self.position + self.velocity.round().astype(int)
-        new_positions = np.clip(new_positions, 0, board_size - 1)
-        self.position = new_positions
-
+    def update_position(self, bounds):
+        # Update position with velocity and enforce bounds
+        self.position += self.velocity
+        self.position = np.clip(self.position, bounds[0], bounds[1])
 
 def fitness(position):
-    board_size = len(position)
-    attacking_pairs = 0
-    for i in range(board_size):
-        for j in range(i + 1, board_size):
-            if position[i] == position[j] or abs(position[i] - position[j]) == j - i:
-                attacking_pairs += 1
-    return attacking_pairs
+    # Discretize the position for the fitness function
+    discrete_position = np.round(position).astype(int)
+    n = len(discrete_position)
+    non_attacking = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            if discrete_position[i] != discrete_position[j] and abs(discrete_position[i] - discrete_position[j]) != j - i:
+                non_attacking += 1
+    max_non_attacking = n * (n - 1) // 2
+    return max_non_attacking - non_attacking
 
+def pso(n, max_iter=1000):
+    num_particles = 30
+    particles = [Particle(n) for _ in range(num_particles)]
 
-def pso_for_n_queens(board_size, num_particles=30, max_iter=100):
-    particles = [Particle(board_size) for _ in range(num_particles)]
-    global_best_score = float('inf')
+    global_best_fitness = float('inf')
     global_best_position = None
+
+    bounds = (0, n - 1)
 
     for _ in range(max_iter):
         for particle in particles:
-            score = fitness(particle.position)
+            # Evaluate fitness on discretized position
+            particle.fitness = fitness(particle.position)
 
-            if score < particle.best_score:
-                particle.best_score = score
+            if particle.fitness < particle.best_fitness:
+                particle.best_fitness = particle.fitness
                 particle.best_position = np.copy(particle.position)
 
-            if score < global_best_score:
-                global_best_score = score
+            if particle.fitness < global_best_fitness:
+                global_best_fitness = particle.fitness
                 global_best_position = np.copy(particle.position)
 
         for particle in particles:
             particle.update_velocity(global_best_position)
-            particle.update_position(board_size)
+            particle.update_position(bounds)
 
-        if global_best_score == 0:
+        if global_best_fitness == 0:
+            # Discretize global best position before returning
+            global_best_position = np.round(global_best_position).astype(int)
             break
 
-    return global_best_position, global_best_score
+    # Discretize global best position before returning if solution is not found within max_iter
+    if global_best_fitness != 0:
+        global_best_position = np.round(global_best_position).astype(int)
 
+    return global_best_position, global_best_fitness
 
-board_size = 16
-solution, score = pso_for_n_queens(board_size)
-
-if score == 0:
-    print("Solution found:")
-    print(solution)
-else:
-    print("No complete solution found, best score:", score)
+solution, fitness_value = pso(16)
+print('Solution:', solution)
+print('Attacking pairs:', fitness_value)
