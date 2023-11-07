@@ -16,8 +16,9 @@ class Particle:
         self.velocity = inertia + cognitive_component + social_component
 
     def update_position(self, board_size):
-        self.position += self.velocity
-        self.position = np.clip(self.position, 0, board_size - 1).astype(int)
+        new_positions = self.position + self.velocity.round().astype(int)
+        new_positions = np.clip(new_positions, 0, board_size - 1)
+        self.position = new_positions
 
 
 def fitness(position):
