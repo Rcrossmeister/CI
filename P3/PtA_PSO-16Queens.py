@@ -3,7 +3,6 @@ import numpy as np
 
 class Particle:
     def __init__(self, n):
-        # Initialize position and velocity
         self.position = np.array([random.uniform(0, n - 1) for _ in range(n)])
         self.velocity = np.zeros(n)
         self.best_position = np.copy(self.position)
@@ -11,7 +10,6 @@ class Particle:
         self.fitness = float('inf')
 
     def update_velocity(self, global_best_position, w=0.72, c1=1.49, c2=1.49):
-        # Update the particle's velocity
         r1 = random.random()
         r2 = random.random()
         cognitive_velocity = c1 * r1 * (self.best_position - self.position)
@@ -19,12 +17,10 @@ class Particle:
         self.velocity = w * self.velocity + cognitive_velocity + social_velocity
 
     def update_position(self, bounds):
-        # Update position with velocity and enforce bounds
         self.position += self.velocity
         self.position = np.clip(self.position, bounds[0], bounds[1])
 
 def fitness(position):
-    # Discretize the position for the fitness function
     discrete_position = np.round(position).astype(int)
     n = len(discrete_position)
     non_attacking = 0
@@ -46,7 +42,6 @@ def pso(n, max_iter=1000):
 
     for _ in range(max_iter):
         for particle in particles:
-            # Evaluate fitness on discretized position
             particle.fitness = fitness(particle.position)
 
             if particle.fitness < particle.best_fitness:
@@ -62,11 +57,9 @@ def pso(n, max_iter=1000):
             particle.update_position(bounds)
 
         if global_best_fitness == 0:
-            # Discretize global best position before returning
             global_best_position = np.round(global_best_position).astype(int)
             break
 
-    # Discretize global best position before returning if solution is not found within max_iter
     if global_best_fitness != 0:
         global_best_position = np.round(global_best_position).astype(int)
 
