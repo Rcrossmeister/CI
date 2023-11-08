@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+# 20231108
 class Particle:
     def __init__(self, n):
         self.position = np.array([random.uniform(0, n - 1) for _ in range(n)])
