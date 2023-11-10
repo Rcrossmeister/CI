@@ -1,23 +1,27 @@
 import numpy as np
+import torch
+import time
 
+# 生成数据
+np_vector = np.random.rand(768)
+np_matrix = np.random.rand(10000, 768)
 
-vector = np.array([1, 2, 3])
-matrix = np.array([[2, 0, 1],
-                   [1, 3, 1],
-                   [0, 0, 5],
-                   [4, 2, 1]])
+# NumPy实现及时间测量
+start_time_np = time.time()
+np_inner_product = np_matrix.dot(np_vector)
+np_top5_indices = np.argsort(np_inner_product)[-5:][::-1]
+end_time_np = time.time()
+np_time_taken = end_time_np - start_time_np
 
-# 计算内积
-inner_product = matrix.dot(vector)
+# 转换成PyTorch数据类型
+torch_vector = torch.tensor(np_vector, dtype=torch.float32)
+torch_matrix = torch.tensor(np_matrix, dtype=torch.float32)
 
-# 找到内积最大的k个值的索引，这里设k为2
-k = 2
-# 使用argpartition进行部分排序
-# 注意argpartition返回的是部分排序的索引，对于我们的用途是足够的
-# 我们感兴趣的k个最大值的索引将是数组的最后k个元素
-# 因为numpy.argpartition不保证顺序，所以我们还需要对这最后k个索引做一个排序来得到真正的顺序
-top_k_indices = np.argpartition(inner_product, -k)[-k:]
-# 最后对这k个索引按照内积的实际值降序排序
-top_k_indices_sorted = top_k_indices[np.argsort(inner_product[top_k_indices])[::-1]]
+# PyTorch实现及时间测量
+start_time_torch = time.time()
+torch_inner_product = torch.matmul(torch_matrix, torch_vector)
+torch_top5_values, torch_top5_indices = torch.topk(torch_inner_product, 5)
+end_time_torch = time.time()
+torch_time_taken = end_time_torch - start_time_torch
 
-top_k_indices_sorted, inner_product[top_k_indices_sorted]
+np_time_taken, torch_time_taken, np_top5_indices, torch_top5_indices
