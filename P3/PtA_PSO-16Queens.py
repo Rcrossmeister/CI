@@ -67,5 +67,6 @@ def pso(n, max_iter=1000):
     return global_best_position, global_best_fitness
 
 solution, fitness_value = pso(16)
+
 print('Solution:', solution)
 print('Attacking pairs:', fitness_value)
