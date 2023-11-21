@@ -32,7 +32,7 @@ def fitness(position):
     max_non_attacking = n * (n - 1) // 2
     return max_non_attacking - non_attacking
 
-def pso(n, max_iter=10000):
+def pso(n, max_iter=1000):
     num_particles = 30
     particles = [Particle(n) for _ in range(num_particles)]
 
